@@ -1,0 +1,9 @@
+# OS
+.idea
+.DS_Store
+
+# Project
+.env
+bin
+docs
+logs/*.log

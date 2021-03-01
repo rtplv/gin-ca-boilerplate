@@ -1,0 +1,13 @@
+stages:
+  - example-master
+
+go-workers-master:
+    stage: example-master
+    tags: [example-master]
+    only:
+    - master
+    script:
+    - cd /home/user/example/
+    - git checkout -- .
+    - git pull origin master
+    - docker-compose restart

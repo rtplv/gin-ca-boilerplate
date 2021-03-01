@@ -1,0 +1,20 @@
+version: "3"  # optional since v1.27.0
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./cmd/api/Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/go/src/example/
+    restart: always
+
+  consumer:
+    build:
+      context: .
+      dockerfile: ./cmd/consumer/Dockerfile
+    volumes:
+      - .:/go/src/example-consumer/
+    restart: always
+
