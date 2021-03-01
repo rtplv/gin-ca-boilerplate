@@ -42,7 +42,7 @@ func (h *Handler) exampleCreate(ctx *gin.Context) {
 	createdExample, err := h.exampleService.Create(ctx.Request.Context(), input.Name)
 	if err != nil {
 		h.logger.Error(err)
-		ValidationError(ctx, err)
+		InternalServerError(ctx, err)
 		return
 	}
 
@@ -65,7 +65,7 @@ func (h *Handler) exampleGetAll(ctx *gin.Context) {
 	examples, err := h.exampleService.GetAll(ctx.Request.Context())
 	if err != nil {
 		h.logger.Error(err)
-		ValidationError(ctx, err)
+		InternalServerError(ctx, err)
 		return
 	}
 
