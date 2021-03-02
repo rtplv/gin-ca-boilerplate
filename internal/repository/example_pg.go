@@ -36,17 +36,17 @@ func (r ExampleRepo) Create(ctx context.Context, name string) (model.Example, er
 }
 
 func (r ExampleRepo) GetAll(ctx context.Context) ([]model.Example, error) {
-	cities := make([]model.Example, 0)
+	examples := make([]model.Example, 0)
 
 	err := r.db.
 		Table(r.table).
 		WithContext(ctx).
-		Find(&cities).
+		Find(&examples).
 		Error
 
 	if err != nil {
 		return nil, err
 	}
 
-	return cities, nil
+	return examples, nil
 }
