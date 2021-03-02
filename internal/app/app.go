@@ -10,10 +10,7 @@ import (
 	"app/pkg/connections"
 	"app/pkg/logs"
 	"context"
-	"errors"
 	"fmt"
-	"github.com/streadway/amqp"
-	"time"
 )
 
 var ctx = context.Background()
@@ -80,12 +77,8 @@ func Run() {
 	go func() {
 		amqpContext, cancel := context.WithCancel(ctx)
 
-		rootHandler := amqpDelivery.NewHandler(amqpContext, rmqClient, services.Example, logger)
-		rootHandler.Consume()
-
-		logger.Info("AMQP Transport running successfully")
-
-		err = checkAMQPConnectionStatus(rmqConn)
+		rootHandler := amqpDelivery.NewHandler(amqpContext, cfg.RMQ, rmqClient, services.Example, logger)
+		err := rootHandler.Consume()
 		if err != nil {
 			logger.Error(err)
 		}
@@ -94,16 +87,4 @@ func Run() {
 	}()
 
 	<-stopChan
-}
-
-func checkAMQPConnectionStatus(conn *amqp.Connection) error {
-	ticker := time.Tick(5 * time.Second)
-
-	for range ticker {
-		if conn.IsClosed() {
-			return errors.New("connection refused")
-		}
-	}
-
-	return nil
 }

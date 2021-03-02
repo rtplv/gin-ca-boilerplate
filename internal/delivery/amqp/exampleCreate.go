@@ -1,41 +1,35 @@
 package amqp
 
 import (
-	"app/internal/enum"
+	amqpPkg "app/pkg/amqp"
 	"app/pkg/logs"
 	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/streadway/amqp"
-	"time"
 )
 
-func (h Handler) listenExampleCreateQueue() error {
-	exampleCreateChan, exampleCreateAmqpChan, err  := h.client.GetConsumeChan(enum.ExampleCreateQueue, 10)
+const queueName = "go:example-app/example/create"
+
+func (h Handler) listenExampleCreateQueue() (*amqpPkg.Consumer, error) {
+	consumer, err := amqpPkg.NewConsumer(h.config, "default", queueName, "main", amqpPkg.Parameters{
+		PrefetchCount: 10,
+	})
 	if err != nil {
-		h.logger.Fatal(err)
+		return nil, err
 	}
-	defer exampleCreateAmqpChan.Close()
 
-	select {
-	case <-h.ctx.Done():
-		fmt.Println("done")
-		return h.ctx.Err()
-	default:
-		ticker := time.Tick(1 * time.Second)
+	h.logger.Info("example/create consumer connection established")
 
-		for range ticker {
-			fmt.Println(h.ctx.Err())
-			fmt.Println("kek")
+	go consumer.Handle(func(d amqp.Delivery) {
+		fmt.Println(d)
+		if err := d.Ack(false); err != nil {
+			// TODO: here need failed message logging
+			d.Reject(false)
 		}
+	})
 
-		for msg := range exampleCreateChan {
-			// 30 minutes timeout limit
-			msgCtx, _ := context.WithDeadline(h.ctx, time.Now().Add(30 * time.Minute))
-			go h.processExampleCreateMessage(msgCtx, h.logger, msg)
-		}
-		return nil
-	}
+	return consumer, err
 }
 
 type ExampleMessage struct {
