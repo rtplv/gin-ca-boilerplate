@@ -9,10 +9,10 @@ import (
 
 type ExampleService struct {
 	repo repository.Example
-	logger *logs.Logger
+	logger logs.Logger
 }
 
-func NewExampleService(repo repository.Example, logger *logs.Logger) *ExampleService {
+func NewExampleService(repo repository.Example, logger logs.Logger) *ExampleService {
 	return &ExampleService{
 		repo,
 		logger,

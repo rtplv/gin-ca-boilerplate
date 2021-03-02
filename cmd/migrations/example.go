@@ -12,10 +12,10 @@ const tableName = "public.example"
 
 type ExampleMigration struct {
 	DB *gorm.DB
-	Logger *logs.Logger
+	Logger logs.Logger
 }
 
-func NewExampleMigration(db *gorm.DB, logger *logs.Logger) *ExampleMigration {
+func NewExampleMigration(db *gorm.DB, logger logs.Logger) *ExampleMigration {
 	return &ExampleMigration{
 		DB: db,
 		Logger: logger,

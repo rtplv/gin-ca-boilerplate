@@ -2,13 +2,21 @@ package app
 
 import (
 	"app/internal/config"
+	amqpDelivery "app/internal/delivery/amqp"
 	"app/internal/delivery/http"
 	"app/internal/repository"
 	"app/internal/service"
+	amqpPkg "app/pkg/amqp"
 	"app/pkg/connections"
 	"app/pkg/logs"
+	"context"
+	"errors"
 	"fmt"
+	"github.com/streadway/amqp"
+	"time"
 )
+
+var ctx = context.Background()
 
 func Run() {
 	logger := logs.NewLogger()
@@ -38,10 +46,12 @@ func Run() {
 	//}
 
 	// TODO: OPTIONAL
-	//rmq := amqp.NewRabbitClient(cfg.RMQ.Host, cfg.RMQ.Port, cfg.RMQ.User, cfg.RMQ.Password)
-	//if err != nil {
-	//	logger.Fatal(err)
-	//}
+	rmqClient := amqpPkg.NewRabbitClient(cfg.RMQ.Host, cfg.RMQ.Port, cfg.RMQ.User, cfg.RMQ.Password)
+	rmqConn, err := rmqClient.GetConnection()
+	if err != nil {
+		logger.Fatal(err)
+	}
+	defer rmqConn.Close()
 
 	// Services, Repos & API Handlers
 	repos := repository.NewRepositories(db)
@@ -54,12 +64,46 @@ func Run() {
 		//RMQ: rmq,
 	})
 
-	rootHandler := http.NewHandler(services.Example, logger)
+	stopChan := make(chan bool)
 
-	router := rootHandler.Init(cfg.GIN.Mode)
+	// HTTP Transport
+	go func() {
+		rootHandler := http.NewHandler(services.Example, logger)
+		router := rootHandler.Init(cfg.GIN.Mode)
+		err = router.Run(fmt.Sprintf(":%s", cfg.GIN.Port))
+		if err != nil {
+			logger.Fatal(err)
+		}
+	}()
 
-	err = router.Run(fmt.Sprintf(":%s", cfg.GIN.Port))
-	if err != nil {
-		logger.Fatal(err)
+	// AMQP Transport
+	go func() {
+		amqpContext, cancel := context.WithCancel(ctx)
+
+		rootHandler := amqpDelivery.NewHandler(amqpContext, rmqClient, services.Example, logger)
+		rootHandler.Consume()
+
+		logger.Info("AMQP Transport running successfully")
+
+		err = checkAMQPConnectionStatus(rmqConn)
+		if err != nil {
+			logger.Error(err)
+		}
+
+		cancel()
+	}()
+
+	<-stopChan
+}
+
+func checkAMQPConnectionStatus(conn *amqp.Connection) error {
+	ticker := time.Tick(10 * time.Second)
+
+	for range ticker {
+		if conn.IsClosed() {
+			return errors.New("connection refused")
+		}
 	}
+
+	return nil
 }

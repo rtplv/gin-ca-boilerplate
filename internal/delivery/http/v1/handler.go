@@ -8,10 +8,10 @@ import (
 
 type Handler struct {
 	exampleService service.Example
-	logger *logs.Logger
+	logger logs.Logger
 }
 
-func NewHandler(exampleService service.Example, logger *logs.Logger) *Handler {
+func NewHandler(exampleService service.Example, logger logs.Logger) *Handler {
 	return &Handler{
 		exampleService: exampleService,
 		logger: logger,

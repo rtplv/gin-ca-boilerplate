@@ -21,7 +21,7 @@ type Services struct {
 
 type ServicesDeps struct {
 	Repos *repository.Repositories
-	Logger *logs.Logger
+	Logger logs.Logger
 	// Connections
 	//DB *gorm.DB
 	//ES *es7.Client
