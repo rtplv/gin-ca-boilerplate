@@ -1,9 +1,9 @@
 version: "3"  # optional since v1.27.0
 services:
-  api:
+  app:
     build:
       context: .
-      dockerfile: ./cmd/api/Dockerfile
+      dockerfile: ./cmd/app/Dockerfile
     ports:
       - "3000:3000"
     volumes:

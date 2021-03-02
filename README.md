@@ -5,7 +5,7 @@ Go Gin boilerplate, which using layers architecture
 ## Project structure
 
 - `cmd` - app entrypoint scripts
-    - `api` - api server
+    - `app` - app instance
     - `consumer` - consumer to work with AMQP (default: Rabbit) queue <em>Optional.</em>
     - `migrations` - app db migrations
 - `internal` - project files not intended for external usage. Main features places here.
@@ -35,14 +35,14 @@ Generated:
 
 1. Generate Swagger doc (optionally):
 ```shell
-swag init -g ./cmd/api/main.go
+swag init -g ./cmd/app/main.go
 ```
 
 2. Run server
 ```shell
-go build -o ./bin/api ./cmd/api/main.go
+go build -o ./bin/app ./cmd/app/main.go
 
-source ./bin/api
+source ./bin/app
 ```
 
 

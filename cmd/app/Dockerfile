@@ -10,7 +10,7 @@ RUN apk add --no-cache tzdata
 
 EXPOSE 3000
 
-CMD go build -o ./bin/server ./cmd/api/ &&\
+CMD go build -o ./bin/server ./cmd/app/ &&\
     go get -u github.com/swaggo/swag/cmd/swag &&\
-    swag init -g ./cmd/api/main.go &&\
+    swag init -g ./cmd/app/main.go &&\
     ./bin/server
