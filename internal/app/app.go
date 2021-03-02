@@ -97,7 +97,7 @@ func Run() {
 }
 
 func checkAMQPConnectionStatus(conn *amqp.Connection) error {
-	ticker := time.Tick(10 * time.Second)
+	ticker := time.Tick(5 * time.Second)
 
 	for range ticker {
 		if conn.IsClosed() {
