@@ -74,13 +74,14 @@ func Run() {
 	}()
 
 	// AMQP Transport
-	go func() {
-		amqpContext, cancel := context.WithCancel(ctx)
 
+	// amqpContext instance
+	amqpContext, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	go func() {
 		rootHandler := rmq.NewHandler(amqpContext, cfg.RMQ, rmqClient, services.Example, logger)
 		go rootHandler.Consume()
-
-		cancel()
 	}()
 
 	<-stopChan

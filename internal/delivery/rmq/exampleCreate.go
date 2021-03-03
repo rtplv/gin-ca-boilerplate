@@ -2,11 +2,11 @@ package rmq
 
 import (
 	amqpPkg "app/pkg/amqp"
-	"app/pkg/logs"
 	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/streadway/amqp"
+	"time"
 )
 
 const queueName = "go:example-app/example/create"
@@ -24,12 +24,8 @@ func (h Handler) listenExampleCreateQueue(errCh chan error) (*amqpPkg.Consumer, 
 	go consumer.
 		SetDisconnectChannel(errCh).
 		Handle(func(d amqp.Delivery) {
-		fmt.Println(d)
-		if err := d.Ack(false); err != nil {
-			// TODO: here need failed message logging
-			d.Reject(false)
-		}
-	})
+			go h.processExampleCreateMessage(d)
+		})
 
 	return consumer, err
 }
@@ -38,9 +34,16 @@ type ExampleMessage struct {
 	Name string `json:"name"`
 }
 
-func (h Handler) processExampleCreateMessage(ctx context.Context, logger logs.Logger, rawMessage amqp.Delivery) {
+func (h Handler) processExampleCreateMessage(rawMessage amqp.Delivery) {
+	ctx, cancel := context.WithTimeout(h.ctx, 30 * time.Minute)
+	defer cancel()
+
 	var exampleMsg ExampleMessage
 	err := json.Unmarshal(rawMessage.Body, &exampleMsg)
+	if err != nil {
+		h.logger.Error(err)
+		return
+	}
 
 	createdExample, err := h.exampleService.Create(ctx, exampleMsg.Name)
 	if err != nil {
@@ -51,7 +54,7 @@ func (h Handler) processExampleCreateMessage(ctx context.Context, logger logs.Lo
 	fmt.Println(createdExample)
 
 	if err = rawMessage.Ack(false); err != nil {
-		logger.Error(err)
+		h.logger.Error(err)
 		return
 	}
 }

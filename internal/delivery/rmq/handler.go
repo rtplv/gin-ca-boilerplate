@@ -37,10 +37,6 @@ func (h *Handler) Consume() {
 	errCh := make(chan error)
 
 	_, err := h.listenExampleCreateQueue(errCh)
-	_, err = h.listenExampleCreateQueue(errCh)
-	_, err = h.listenExampleCreateQueue(errCh)
-	_, err = h.listenExampleCreateQueue(errCh)
-	_, err = h.listenExampleCreateQueue(errCh)
 	if err != nil {
 		h.logger.Error(err)
 		go h.reconnect()
@@ -63,7 +59,7 @@ func (h *Handler) reconnect() {
 		return
 	}
 
-	time.Sleep(1 * time.Second)
+	time.Sleep(1 * time.Minute)
 
 	h.reconnectAttempts += 1
 	h.logger.Info(fmt.Sprintf("Reconnecting... Attempt № %d", h.reconnectAttempts))
