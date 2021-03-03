@@ -3,7 +3,6 @@ package service
 import (
 	"app/internal/model"
 	"app/internal/repository"
-	"app/pkg/amqp"
 	"app/pkg/logs"
 	"context"
 	//es7 "github.com/elastic/go-elasticsearch/v7"
@@ -25,7 +24,6 @@ type ServicesDeps struct {
 	// Connections
 	//DB *gorm.DB
 	//ES *es7.Client
-	RMQ amqp.Client
 }
 
 func NewServices(deps ServicesDeps) *Services {

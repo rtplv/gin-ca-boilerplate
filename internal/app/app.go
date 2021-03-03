@@ -6,7 +6,6 @@ import (
 	"app/internal/delivery/rmq"
 	"app/internal/repository"
 	"app/internal/service"
-	amqpPkg "app/pkg/amqp"
 	"app/pkg/connections"
 	"app/pkg/logs"
 	"context"
@@ -42,14 +41,6 @@ func Run() {
 	//	logger.Fatal(err)
 	//}
 
-	// TODO: OPTIONAL
-	rmqClient := amqpPkg.NewRabbitClient(cfg.RMQ.Host, cfg.RMQ.Port, cfg.RMQ.User, cfg.RMQ.Password)
-	rmqConn, err := rmqClient.GetConnection()
-	if err != nil {
-		logger.Fatal(err)
-	}
-	defer rmqConn.Close()
-
 	// Services, Repos & API Handlers
 	repos := repository.NewRepositories(db)
 	services := service.NewServices(service.ServicesDeps{
@@ -58,7 +49,6 @@ func Run() {
 		// TODO: OPTIONAL
 		//DB: db,
 		//ES: es,
-		//RMQ: rmq,
 	})
 
 	stopChan := make(chan bool)
@@ -80,7 +70,7 @@ func Run() {
 	defer cancel()
 
 	go func() {
-		rootHandler := rmq.NewHandler(amqpContext, cfg.RMQ, rmqClient, services.Example, logger)
+		rootHandler := rmq.NewHandler(amqpContext, cfg.RMQ, services.Example, logger)
 		go rootHandler.Consume()
 	}()
 

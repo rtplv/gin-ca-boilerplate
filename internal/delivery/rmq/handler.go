@@ -3,7 +3,6 @@ package rmq
 import (
 	"app/internal/config"
 	"app/internal/service"
-	"app/pkg/amqp"
 	"app/pkg/logs"
 	"context"
 	"errors"
@@ -14,19 +13,17 @@ import (
 type Handler struct {
 	ctx context.Context
 	config config.RabbitMqConfig
-	client amqp.Client
 	exampleService service.Example
 	logger logs.Logger
 	reconnectAttempts int
 	maxReconnectAttempts int
 }
 
-func NewHandler(ctx context.Context, rmqConfig config.RabbitMqConfig, client amqp.Client, exampleService service.Example,
+func NewHandler(ctx context.Context, rmqConfig config.RabbitMqConfig, exampleService service.Example,
 	logger logs.Logger) *Handler {
 	return &Handler{
 		ctx: ctx,
 		config: rmqConfig,
-		client: client,
 		exampleService: exampleService,
 		logger: logger,
 		maxReconnectAttempts: 10,
