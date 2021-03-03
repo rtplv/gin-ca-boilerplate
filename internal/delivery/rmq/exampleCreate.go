@@ -11,8 +11,8 @@ import (
 
 const queueName = "go:example-app/example/create"
 
-func (h Handler) listenExampleCreateQueue(errCh chan error) (*amqpClient.Consumer, error) {
-	consumer, err := amqpClient.NewConsumer(h.config, "default", queueName, "main", amqpClient.Parameters{
+func (h Handler) listenExampleCreateQueue(credentials amqpClient.Credentials, errCh chan error) (*amqpClient.Consumer, error) {
+	consumer, err := amqpClient.NewConsumer(credentials, "default", queueName, "main", amqpClient.Parameters{
 		PrefetchCount: 10,
 	})
 	if err != nil {
@@ -35,7 +35,7 @@ type ExampleMessage struct {
 }
 
 func (h Handler) processExampleCreateMessage(rawMessage amqp.Delivery) {
-	ctx, cancel := context.WithTimeout(h.ctx, 30 * time.Minute)
+	ctx, cancel := context.WithTimeout(h.ctx, 30*time.Minute)
 	defer cancel()
 
 	var exampleMsg ExampleMessage

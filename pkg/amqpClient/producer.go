@@ -1,28 +1,27 @@
 package amqpClient
 
 import (
-	"app/internal/config"
 	"errors"
 	"fmt"
 	"github.com/streadway/amqp"
 )
 
 type Producer struct {
-	Config     config.RabbitMqConfig
-	Conn       *amqp.Connection
-	Channel    *amqp.Channel
-	Queue 	   amqp.Queue
-	Tag        string
-	Deliveries <-chan amqp.Delivery
-	Disconnect chan error
+	Credentials Credentials
+	Conn        *amqp.Connection
+	Channel     *amqp.Channel
+	Queue       amqp.Queue
+	Tag         string
+	Deliveries  <-chan amqp.Delivery
+	Disconnect  chan error
 }
 
-func NewProducer(config config.RabbitMqConfig, exchange, queueName string, ctag string,
+func NewProducer(credentials Credentials, exchange, queueName string, ctag string,
 	parameters Parameters) (*Producer, error) {
 	p := &Producer{
-		Config:  config,
-		Tag:     ctag,
-		Disconnect: make(chan error),
+		Credentials: credentials,
+		Tag:         ctag,
+		Disconnect:  make(chan error),
 	}
 
 	// Optional parameters
@@ -43,10 +42,10 @@ func NewProducer(config config.RabbitMqConfig, exchange, queueName string, ctag 
 	// Open connection
 	p.Conn, err = amqp.Dial(
 		fmt.Sprintf("amqp://%s:%s@%s:%s",
-			p.Config.User,
-			p.Config.Password,
-			p.Config.Host,
-			p.Config.Port,
+			p.Credentials.User,
+			p.Credentials.Password,
+			p.Credentials.Host,
+			p.Credentials.Port,
 		))
 	if err != nil {
 		return nil, err
@@ -57,7 +56,7 @@ func NewProducer(config config.RabbitMqConfig, exchange, queueName string, ctag 
 		err := <-p.Conn.NotifyClose(make(chan *amqp.Error))
 
 		if err != nil {
-			p.Disconnect<-errors.New(err.Error())
+			p.Disconnect <- errors.New(err.Error())
 		}
 	}()
 

@@ -11,3 +11,10 @@ type Parameters struct {
 	RoutingKey string
 	PrefetchCount int
 }
+
+type Credentials struct {
+	User string
+	Password string
+	Host string
+	Port string
+}

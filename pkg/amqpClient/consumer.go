@@ -1,29 +1,28 @@
 package amqpClient
 
 import (
-	"app/internal/config"
 	"errors"
 	"fmt"
 	"github.com/streadway/amqp"
 )
 
 type Consumer struct {
-	Config     config.RabbitMqConfig
-	Conn       *amqp.Connection
-	Channel    *amqp.Channel
-	Tag        string
-	Deliveries <-chan amqp.Delivery
-	Disconnect chan error
-	Done       chan error
+	Credentials Credentials
+	Conn        *amqp.Connection
+	Channel     *amqp.Channel
+	Tag         string
+	Deliveries  <-chan amqp.Delivery
+	Disconnect  chan error
+	Done        chan error
 }
 
-func NewConsumer(config config.RabbitMqConfig, exchange, queueName string, ctag string,
+func NewConsumer(credentials Credentials, exchange, queueName string, ctag string,
 	parameters Parameters) (*Consumer, error) {
 	c := &Consumer{
-		Config:  config,
-		Tag:     ctag,
-		Disconnect: make(chan error),
-		Done:    make(chan error),
+		Credentials: credentials,
+		Tag:         ctag,
+		Disconnect:  make(chan error),
+		Done:        make(chan error),
 	}
 
 	// Optional parameters
@@ -44,10 +43,10 @@ func NewConsumer(config config.RabbitMqConfig, exchange, queueName string, ctag 
 	// Open connection
 	c.Conn, err = amqp.Dial(
 		fmt.Sprintf("amqp://%s:%s@%s:%s",
-			c.Config.User,
-			c.Config.Password,
-			c.Config.Host,
-			c.Config.Port,
+			c.Credentials.User,
+			c.Credentials.Password,
+			c.Credentials.Host,
+			c.Credentials.Port,
 		))
 	if err != nil {
 		return nil, err
@@ -57,7 +56,7 @@ func NewConsumer(config config.RabbitMqConfig, exchange, queueName string, ctag 
 	go func() {
 		err := <-c.Conn.NotifyClose(make(chan *amqp.Error))
 
-		c.Disconnect<-errors.New(err.Error())
+		c.Disconnect <- errors.New(err.Error())
 	}()
 
 	c.Channel, err = c.Conn.Channel()

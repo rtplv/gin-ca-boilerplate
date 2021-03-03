@@ -13,7 +13,14 @@ func main() {
 		fmt.Println(err)
 	}
 
-	producer, err := amqpClient.NewProducer(cfg.RMQ, "default", "go:example-app/example/create", "default", amqpClient.Parameters{})
+	credentials := amqpClient.Credentials{
+		User:     cfg.RMQ.User,
+		Password: cfg.RMQ.Password,
+		Host:     cfg.RMQ.Host,
+		Port:     cfg.RMQ.Port,
+	}
+
+	producer, err := amqpClient.NewProducer(credentials, "default", "go:example-app/example/create", "default", amqpClient.Parameters{})
 	if err != nil {
 		fmt.Println(err)
 	}
