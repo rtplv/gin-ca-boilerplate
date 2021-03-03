@@ -2,15 +2,18 @@ package amqp
 
 import (
 	"app/internal/config"
+	"errors"
 	"fmt"
 	"github.com/streadway/amqp"
 )
 
 type Consumer struct {
+	Config     config.RabbitMqConfig
 	Conn       *amqp.Connection
 	Channel    *amqp.Channel
 	Tag        string
 	Deliveries <-chan amqp.Delivery
+	Disconnect chan error
 	Done       chan error
 }
 
@@ -23,9 +26,11 @@ type Parameters struct {
 func NewConsumer(config config.RabbitMqConfig, exchange, queueName string, ctag string,
 	parameters Parameters) (*Consumer, error) {
 	c := &Consumer{
+		Config:  config,
 		Conn:    nil,
 		Channel: nil,
 		Tag:     ctag,
+		Disconnect: make(chan error),
 		Done:    make(chan error),
 	}
 
@@ -47,10 +52,10 @@ func NewConsumer(config config.RabbitMqConfig, exchange, queueName string, ctag 
 	// Open connection
 	c.Conn, err = amqp.Dial(
 		fmt.Sprintf("amqp://%s:%s@%s:%s",
-			config.User,
-			config.Password,
-			config.Host,
-			config.Port,
+			c.Config.User,
+			c.Config.Password,
+			c.Config.Host,
+			c.Config.Port,
 		))
 	if err != nil {
 		return nil, err
@@ -59,8 +64,8 @@ func NewConsumer(config config.RabbitMqConfig, exchange, queueName string, ctag 
 	// Close connection error throwing
 	go func() {
 		err := <-c.Conn.NotifyClose(make(chan *amqp.Error))
-		fmt.Println(err)
-		c.Done<-err
+
+		c.Disconnect<-errors.New(err.Error())
 	}()
 
 	c.Channel, err = c.Conn.Channel()
@@ -125,7 +130,7 @@ func NewConsumer(config config.RabbitMqConfig, exchange, queueName string, ctag 
 
 func (c *Consumer) Handle(callback func(d amqp.Delivery)) {
 	for d := range c.Deliveries {
-		callback(d)
+		go callback(d)
 	}
 
 	c.Done <- nil
@@ -143,4 +148,10 @@ func (c *Consumer) Shutdown() error {
 
 	// wait for handle() to exit
 	return <-c.Done
+}
+
+func (c *Consumer) SetDisconnectChannel(ch chan error) *Consumer {
+	c.Disconnect = ch
+
+	return c
 }

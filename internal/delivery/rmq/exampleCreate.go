@@ -1,4 +1,4 @@
-package amqp
+package rmq
 
 import (
 	amqpPkg "app/pkg/amqp"
@@ -11,7 +11,7 @@ import (
 
 const queueName = "go:example-app/example/create"
 
-func (h Handler) listenExampleCreateQueue() (*amqpPkg.Consumer, error) {
+func (h Handler) listenExampleCreateQueue(errCh chan error) (*amqpPkg.Consumer, error) {
 	consumer, err := amqpPkg.NewConsumer(h.config, "default", queueName, "main", amqpPkg.Parameters{
 		PrefetchCount: 10,
 	})
@@ -21,7 +21,9 @@ func (h Handler) listenExampleCreateQueue() (*amqpPkg.Consumer, error) {
 
 	h.logger.Info("example/create consumer connection established")
 
-	go consumer.Handle(func(d amqp.Delivery) {
+	go consumer.
+		SetDisconnectChannel(errCh).
+		Handle(func(d amqp.Delivery) {
 		fmt.Println(d)
 		if err := d.Ack(false); err != nil {
 			// TODO: here need failed message logging

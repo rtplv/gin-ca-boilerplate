@@ -2,8 +2,8 @@ package app
 
 import (
 	"app/internal/config"
-	amqpDelivery "app/internal/delivery/amqp"
 	"app/internal/delivery/http"
+	"app/internal/delivery/rmq"
 	"app/internal/repository"
 	"app/internal/service"
 	amqpPkg "app/pkg/amqp"
@@ -77,11 +77,8 @@ func Run() {
 	go func() {
 		amqpContext, cancel := context.WithCancel(ctx)
 
-		rootHandler := amqpDelivery.NewHandler(amqpContext, cfg.RMQ, rmqClient, services.Example, logger)
-		err := rootHandler.Consume()
-		if err != nil {
-			logger.Error(err)
-		}
+		rootHandler := rmq.NewHandler(amqpContext, cfg.RMQ, rmqClient, services.Example, logger)
+		go rootHandler.Consume()
 
 		cancel()
 	}()
