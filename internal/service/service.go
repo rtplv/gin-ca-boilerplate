@@ -15,7 +15,7 @@ type Example interface {
 }
 
 type Services struct {
-	Example Example
+	Example
 }
 
 type ServicesDeps struct {
