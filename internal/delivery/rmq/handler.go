@@ -3,7 +3,6 @@ package rmq
 import (
 	"app/internal/config"
 	"app/internal/service"
-	"app/pkg/amqpClient"
 	"app/pkg/logs"
 	"context"
 	"errors"
@@ -32,15 +31,15 @@ func NewHandler(ctx context.Context, rmqConfig config.RabbitMqConfig, exampleSer
 }
 
 func (h *Handler) Consume() {
-	credentials := amqpClient.Credentials{
-		User:     h.config.User,
-		Password: h.config.Password,
-		Host:     h.config.Host,
-		Port:     h.config.Port,
-	}
+	url := fmt.Sprintf("amqp://%s:%s@%s:%s",
+		h.config.User,
+		h.config.Password,
+		h.config.Host,
+		h.config.Port)
+
 	errCh := make(chan error)
 
-	_, err := h.listenExampleCreateQueue(credentials, errCh)
+	_, err := h.listenExampleCreateQueue(url, errCh)
 	if err != nil {
 		h.logger.Error(err)
 		go h.reconnect()

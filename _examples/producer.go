@@ -13,14 +13,13 @@ func main() {
 		fmt.Println(err)
 	}
 
-	credentials := amqpClient.Credentials{
-		User:     cfg.RMQ.User,
-		Password: cfg.RMQ.Password,
-		Host:     cfg.RMQ.Host,
-		Port:     cfg.RMQ.Port,
-	}
+	url := fmt.Sprintf("amqp://%s:%s@%s:%s",
+		cfg.RMQ.User,
+		cfg.RMQ.Password,
+		cfg.RMQ.Host,
+		cfg.RMQ.Port)
 
-	producer, err := amqpClient.NewProducer(credentials, "default", "go:example-app/example/create", "default", amqpClient.Parameters{})
+	producer, err := amqpClient.NewProducer(url, "default", "go:example-app/example/create", "default", amqpClient.Parameters{})
 	if err != nil {
 		fmt.Println(err)
 	}
