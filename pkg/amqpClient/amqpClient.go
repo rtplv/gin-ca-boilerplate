@@ -1,4 +1,4 @@
-package amqp
+package amqpClient
 
 type Feature interface {
 	Shutdown() error

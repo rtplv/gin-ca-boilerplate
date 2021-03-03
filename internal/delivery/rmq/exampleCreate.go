@@ -1,7 +1,7 @@
 package rmq
 
 import (
-	amqpPkg "app/pkg/amqp"
+	"app/pkg/amqpClient"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -11,8 +11,8 @@ import (
 
 const queueName = "go:example-app/example/create"
 
-func (h Handler) listenExampleCreateQueue(errCh chan error) (*amqpPkg.Consumer, error) {
-	consumer, err := amqpPkg.NewConsumer(h.config, "default", queueName, "main", amqpPkg.Parameters{
+func (h Handler) listenExampleCreateQueue(errCh chan error) (*amqpClient.Consumer, error) {
+	consumer, err := amqpClient.NewConsumer(h.config, "default", queueName, "main", amqpClient.Parameters{
 		PrefetchCount: 10,
 	})
 	if err != nil {

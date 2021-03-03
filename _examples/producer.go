@@ -2,7 +2,7 @@ package main
 
 import (
 	"app/internal/config"
-	amqpPkg "app/pkg/amqp"
+	"app/pkg/amqpClient"
 	"fmt"
 	"github.com/streadway/amqp"
 )
@@ -13,7 +13,7 @@ func main() {
 		fmt.Println(err)
 	}
 
-	producer, err := amqpPkg.NewProducer(cfg.RMQ, "default", "go:example-app/example/create", "default", amqpPkg.Parameters{})
+	producer, err := amqpClient.NewProducer(cfg.RMQ, "default", "go:example-app/example/create", "default", amqpClient.Parameters{})
 	if err != nil {
 		fmt.Println(err)
 	}

@@ -1,4 +1,4 @@
-package amqp
+package amqpClient
 
 import (
 	"app/internal/config"
@@ -7,23 +7,22 @@ import (
 	"github.com/streadway/amqp"
 )
 
-type Consumer struct {
+type Producer struct {
 	Config     config.RabbitMqConfig
 	Conn       *amqp.Connection
 	Channel    *amqp.Channel
+	Queue 	   amqp.Queue
 	Tag        string
 	Deliveries <-chan amqp.Delivery
 	Disconnect chan error
-	Done       chan error
 }
 
-func NewConsumer(config config.RabbitMqConfig, exchange, queueName string, ctag string,
-	parameters Parameters) (*Consumer, error) {
-	c := &Consumer{
+func NewProducer(config config.RabbitMqConfig, exchange, queueName string, ctag string,
+	parameters Parameters) (*Producer, error) {
+	p := &Producer{
 		Config:  config,
 		Tag:     ctag,
 		Disconnect: make(chan error),
-		Done:    make(chan error),
 	}
 
 	// Optional parameters
@@ -42,12 +41,12 @@ func NewConsumer(config config.RabbitMqConfig, exchange, queueName string, ctag 
 	var err error
 
 	// Open connection
-	c.Conn, err = amqp.Dial(
+	p.Conn, err = amqp.Dial(
 		fmt.Sprintf("amqp://%s:%s@%s:%s",
-			c.Config.User,
-			c.Config.Password,
-			c.Config.Host,
-			c.Config.Port,
+			p.Config.User,
+			p.Config.Password,
+			p.Config.Host,
+			p.Config.Port,
 		))
 	if err != nil {
 		return nil, err
@@ -55,22 +54,24 @@ func NewConsumer(config config.RabbitMqConfig, exchange, queueName string, ctag 
 
 	// Close connection error throwing
 	go func() {
-		err := <-c.Conn.NotifyClose(make(chan *amqp.Error))
+		err := <-p.Conn.NotifyClose(make(chan *amqp.Error))
 
-		c.Disconnect<-errors.New(err.Error())
+		if err != nil {
+			p.Disconnect<-errors.New(err.Error())
+		}
 	}()
 
-	c.Channel, err = c.Conn.Channel()
+	p.Channel, err = p.Conn.Channel()
 	if err != nil {
 		return nil, err
 	}
 
-	err = c.Channel.Qos(prefetchCount, 0, false)
+	err = p.Channel.Qos(prefetchCount, 0, false)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = c.Channel.ExchangeDeclare(
+	if err = p.Channel.ExchangeDeclare(
 		exchange,
 		exchangeType,
 		true,
@@ -82,7 +83,7 @@ func NewConsumer(config config.RabbitMqConfig, exchange, queueName string, ctag 
 		return nil, err
 	}
 
-	queue, err := c.Channel.QueueDeclare(
+	p.Queue, err = p.Channel.QueueDeclare(
 		queueName,
 		true,
 		false,
@@ -94,8 +95,8 @@ func NewConsumer(config config.RabbitMqConfig, exchange, queueName string, ctag 
 		return nil, err
 	}
 
-	if err = c.Channel.QueueBind(
-		queue.Name,
+	if err = p.Channel.QueueBind(
+		p.Queue.Name,
 		routingKey,
 		exchange,
 		false,
@@ -104,9 +105,9 @@ func NewConsumer(config config.RabbitMqConfig, exchange, queueName string, ctag 
 		return nil, err
 	}
 
-	c.Deliveries, err = c.Channel.Consume(
-		queue.Name,
-		c.Tag,
+	p.Deliveries, err = p.Channel.Consume(
+		p.Queue.Name,
+		p.Tag,
 		false,
 		false,
 		false,
@@ -117,33 +118,31 @@ func NewConsumer(config config.RabbitMqConfig, exchange, queueName string, ctag 
 		return nil, err
 	}
 
-	return c, nil
+	return p, nil
 }
 
-func (c *Consumer) Handle(callback func(d amqp.Delivery)) {
-	for d := range c.Deliveries {
-		go callback(d)
-	}
+func (p *Producer) Send(publishing amqp.Publishing) (err error) {
+	err = p.Channel.Publish("", p.Queue.Name, false, false, publishing)
 
-	c.Done <- nil
+	return
 }
 
-func (c *Consumer) Shutdown() error {
+func (p *Producer) Shutdown() error {
 	// will close() the deliveries channel
-	if err := c.Channel.Cancel(c.Tag, true); err != nil {
+	if err := p.Channel.Cancel(p.Tag, true); err != nil {
 		return err
 	}
 
-	if err := c.Conn.Close(); err != nil {
+	if err := p.Conn.Close(); err != nil {
 		return err
 	}
 
 	// wait for handle() to exit
-	return <-c.Done
+	return nil
 }
 
-func (c *Consumer) SetDisconnectChannel(ch chan error) *Consumer {
-	c.Disconnect = ch
+func (p *Producer) SetDisconnectChannel(ch chan error) *Producer {
+	p.Disconnect = ch
 
-	return c
+	return p
 }
