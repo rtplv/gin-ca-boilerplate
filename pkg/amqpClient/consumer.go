@@ -2,12 +2,10 @@ package amqpClient
 
 import (
 	"errors"
-	"fmt"
 	"github.com/streadway/amqp"
 )
 
 type Consumer struct {
-	Credentials Credentials
 	Conn        *amqp.Connection
 	Channel     *amqp.Channel
 	Tag         string
@@ -16,10 +14,9 @@ type Consumer struct {
 	Done        chan error
 }
 
-func NewConsumer(credentials Credentials, exchange, queueName string, ctag string,
+func NewConsumer(url string, exchange, queueName string, ctag string,
 	parameters Parameters) (*Consumer, error) {
 	c := &Consumer{
-		Credentials: credentials,
 		Tag:         ctag,
 		Disconnect:  make(chan error),
 		Done:        make(chan error),
@@ -41,13 +38,7 @@ func NewConsumer(credentials Credentials, exchange, queueName string, ctag strin
 	var err error
 
 	// Open connection
-	c.Conn, err = amqp.Dial(
-		fmt.Sprintf("amqp://%s:%s@%s:%s",
-			c.Credentials.User,
-			c.Credentials.Password,
-			c.Credentials.Host,
-			c.Credentials.Port,
-		))
+	c.Conn, err = amqp.Dial(url)
 	if err != nil {
 		return nil, err
 	}
