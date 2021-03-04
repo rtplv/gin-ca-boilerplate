@@ -2,6 +2,7 @@ package main
 
 import (
 	"app/internal/config"
+	"app/internal/model"
 	"app/pkg/connections"
 	"app/pkg/logs"
 )
@@ -24,5 +25,12 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	NewExampleMigration(db, logger).Up()
+	err = db.Migrator().AutoMigrate(
+		&model.Example{},
+	)
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	logger.Info("Migrate successful")
 }
