@@ -10,14 +10,11 @@ type Producer struct {
 	Channel     *amqp.Channel
 	Queue       amqp.Queue
 	Tag         string
-	Deliveries  <-chan amqp.Delivery
 	Disconnect  chan error
 }
 
-func NewProducer(url string, exchange, queueName string, ctag string,
-	parameters Parameters) (*Producer, error) {
+func NewProducer(url string, exchange, queueName string, parameters Parameters) (*Producer, error) {
 	p := &Producer{
-		Tag:         ctag,
 		Disconnect:  make(chan error),
 	}
 
@@ -95,19 +92,6 @@ func NewProducer(url string, exchange, queueName string, ctag string,
 		return nil, err
 	}
 
-	p.Deliveries, err = p.Channel.Consume(
-		p.Queue.Name,
-		p.Tag,
-		false,
-		false,
-		false,
-		false,
-		nil,
-	)
-	if err != nil {
-		return nil, err
-	}
-
 	return p, nil
 }
 
@@ -118,11 +102,6 @@ func (p *Producer) Send(publishing amqp.Publishing) (err error) {
 }
 
 func (p *Producer) Shutdown() error {
-	// will close() the deliveries channel
-	if err := p.Channel.Cancel(p.Tag, true); err != nil {
-		return err
-	}
-
 	if err := p.Conn.Close(); err != nil {
 		return err
 	}
