@@ -5,6 +5,6 @@ type Example struct {
 	Name string `json:"name"`
 }
 
-func (e Example) TableName() string {
+func (Example) TableName() string {
 	return "public.example"
 }
