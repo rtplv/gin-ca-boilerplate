@@ -8,13 +8,11 @@ import (
 
 type ExampleRepo struct {
 	db    *gorm.DB
-	table string
 }
 
 func NewExampleRepo(db *gorm.DB) *ExampleRepo {
 	return &ExampleRepo{
 		db:    db,
-		table: "public.example",
 	}
 }
 
@@ -24,7 +22,6 @@ func (r ExampleRepo) Create(ctx context.Context, name string) (model.Example, er
 	}
 
 	err := r.db.
-		Table(r.table).
 		WithContext(ctx).
 		Create(&creatingExample).
 		Error
@@ -39,7 +36,6 @@ func (r ExampleRepo) GetAll(ctx context.Context) ([]model.Example, error) {
 	examples := make([]model.Example, 0)
 
 	err := r.db.
-		Table(r.table).
 		WithContext(ctx).
 		Find(&examples).
 		Error

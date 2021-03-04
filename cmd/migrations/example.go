@@ -8,8 +8,6 @@ import (
 	"gorm.io/gorm"
 )
 
-const tableName = "public.example"
-
 type ExampleMigration struct {
 	DB *gorm.DB
 	Logger logs.Logger
@@ -24,13 +22,13 @@ func NewExampleMigration(db *gorm.DB, logger logs.Logger) *ExampleMigration {
 
 func (m ExampleMigration) Up()  {
 	targetModel := model.Example{}
-	tableExist := m.DB.Table(tableName).Migrator().HasTable(targetModel)
+	tableExist := m.DB.Migrator().HasTable(targetModel)
 
 	if tableExist {
-		m.Logger.Fatal(errors.New(fmt.Sprintf("Table %s already exist", tableName)))
+		m.Logger.Fatal(errors.New(fmt.Sprintf("Table %s already exist", targetModel.TableName())))
 	}
 
-	err := m.DB.Table(tableName).Migrator().AutoMigrate(&targetModel)
+	err := m.DB.Migrator().AutoMigrate(&targetModel)
 	if err != nil {
 		m.Logger.Fatal(err)
 	}
@@ -40,13 +38,13 @@ func (m ExampleMigration) Up()  {
 
 func (m ExampleMigration) Down()  {
 	targetModel := model.Example{}
-	tableExist := m.DB.Table(tableName).Migrator().HasTable(targetModel)
+	tableExist := m.DB.Migrator().HasTable(targetModel)
 
 	if !tableExist {
-		m.Logger.Fatal(errors.New(fmt.Sprintf("Table %s does not exist", tableName)))
+		m.Logger.Fatal(errors.New(fmt.Sprintf("Table %s does not exist", targetModel.TableName())))
 	}
 
-	err := m.DB.Table(tableName).Migrator().DropTable(&targetModel)
+	err := m.DB.Migrator().DropTable(&targetModel)
 	if err != nil {
 		m.Logger.Fatal(err)
 	}
