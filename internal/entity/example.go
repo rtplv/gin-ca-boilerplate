@@ -1,4 +1,4 @@
-package entitity
+package entity
 
 type Example struct {
 	ID uint
