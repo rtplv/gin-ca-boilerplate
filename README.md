@@ -35,7 +35,7 @@ Generated:
 
 1. Generate Swagger doc (optionally):
 ```shell
-swag init -g ./cmd/app/main.go
+swag init -g ./cmd/app/main.go --parseDependency --parseInternal
 ```
 
 2. Run server
