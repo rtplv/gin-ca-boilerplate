@@ -78,7 +78,7 @@ func NewConsumer(url string, exchange, queueName string, ctag string,
 		false,
 		false,
 		false,
-		nil,
+		parameters.QueueArgs,
 	)
 	if err != nil {
 		return nil, err

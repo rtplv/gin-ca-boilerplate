@@ -87,7 +87,7 @@ func NewProducer(url string, exchange, queueName string, parameters Parameters) 
 		routingKey,
 		exchange,
 		false,
-		nil,
+		parameters.QueueArgs,
 	); err != nil {
 		return nil, err
 	}
