@@ -89,7 +89,7 @@ func NewConsumer(url string, exchange, queueName string, ctag string,
 		routingKey,
 		exchange,
 		false,
-		nil,
+		parameters.QueueArgs,
 	); err != nil {
 		return nil, err
 	}
