@@ -1,6 +1,6 @@
-# gin-layers-boilerplate
+# gin-ca-boilerplate
 
-Go Gin boilerplate, which using layers architecture
+Go Gin boilerplate, which using clean architecture
 
 ## Project structure
 
