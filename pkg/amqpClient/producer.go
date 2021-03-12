@@ -13,7 +13,7 @@ type Producer struct {
 	Disconnect  chan error
 }
 
-func NewProducer(url string, exchange, queueName string, parameters Parameters) (*Producer, error) {
+func NewProducer(url string, exchange, queueName string, parameters *Parameters) (*Producer, error) {
 	p := &Producer{
 		Disconnect:  make(chan error),
 	}

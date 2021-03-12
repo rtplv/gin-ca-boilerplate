@@ -15,7 +15,7 @@ type Consumer struct {
 }
 
 func NewConsumer(url string, exchange, queueName string, ctag string,
-	parameters Parameters) (*Consumer, error) {
+	parameters *Parameters) (*Consumer, error) {
 	c := &Consumer{
 		Tag:         ctag,
 		Disconnect:  make(chan error),

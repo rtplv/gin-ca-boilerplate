@@ -12,7 +12,7 @@ import (
 const queueName = "go:example-app/example/create"
 
 func (h Handler) listenExampleCreateQueue(url string, errCh chan error) (*amqpClient.Consumer, error) {
-	consumer, err := amqpClient.NewConsumer(url, "default", queueName, "main", amqpClient.Parameters{
+	consumer, err := amqpClient.NewConsumer(url, "default", queueName, "main", &amqpClient.Parameters{
 		PrefetchCount: 10,
 	})
 	if err != nil {

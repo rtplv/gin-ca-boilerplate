@@ -19,7 +19,7 @@ func main() {
 		cfg.RMQ.Host,
 		cfg.RMQ.Port)
 
-	producer, err := amqpClient.NewProducer(url, "default", "go:example-app/example/create", amqpClient.Parameters{})
+	producer, err := amqpClient.NewProducer(url, "default", "go:example-app/example/create", nil)
 	if err != nil {
 		fmt.Println(err)
 	}
